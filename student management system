@@ -1,0 +1,307 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <fstream>
+using namespace std;
+
+class Student {
+private:
+    int roll;
+    string name;
+    int age;
+    string course;
+
+public:
+    void input();
+    void display() const;
+    void update();
+    int getRoll() const;
+    string getName() const;
+    int getAge() const;
+    string getCourse() const;
+    void setData(int r, string n, int a, string c);
+};
+
+// Member Functions
+void Student::input() {
+    cout << "Enter Roll No: ";
+    cin >> roll;
+    cin.ignore();
+    cout << "Enter Name: ";
+    getline(cin, name);
+    cout << "Enter Age: ";
+    cin >> age;
+    cin.ignore();
+    cout << "Enter Course: ";
+    getline(cin, course);
+}
+
+void Student::display() const {
+    cout << "\nRoll No: " << roll
+         << "\nName: " << name
+         << "\nAge: " << age
+         << "\nCourse: " << course
+         << "\n------------------------\n";
+}
+
+void Student::update() {
+    cin.ignore();
+    cout << "Enter New Name: ";
+    getline(cin, name);
+    cout << "Enter New Age: ";
+    cin >> age;
+    cin.ignore();
+    cout << "Enter New Course: ";
+    getline(cin, course);
+    cout << "Student updated successfully!\n";
+}
+
+int Student::getRoll() const { return roll; }
+string Student::getName() const { return name; }
+int Student::getAge() const { return age; }
+string Student::getCourse() const { return course; }
+
+void Student::setData(int r, string n, int a, string c) {
+    roll = r;
+    name = n;
+    age = a;
+    course = c;
+}
+
+// File Save and Load
+void saveToFile(const vector<Student>& students) {
+    ofstream fout("students.txt");
+    for (const auto& s : students) {
+        fout << s.getRoll() << '\n'
+             << s.getName() << '\n'
+             << s.getAge() << '\n'
+             << s.getCourse() << '\n';
+    }
+    fout.close();
+}
+
+void loadFromFile(vector<Student>& students) {
+    ifstream fin("students.txt");
+    if (!fin) return;
+
+    students.clear();
+    int roll, age;
+    string name, course;
+
+    while (fin >> roll) {
+        fin.ignore();
+        getline(fin, name);
+        fin >> age;
+        fin.ignore();
+        getline(fin, course);
+
+        Student s;
+        s.setData(roll, name, age, course);
+        students.push_back(s);
+    }
+    fin.close();
+}
+
+// Core Functions
+void addStudent(vector<Student>& students) {
+    Student s;
+    s.input();
+    students.push_back(s);
+    saveToFile(students);
+    cout << "Student added and saved to file.\n";
+}
+
+void displayAll(const vector<Student>& students) {
+    if (students.empty()) {
+        cout << "No students found.\n";
+        return;
+    }
+    for (const auto& s : students)
+        s.display();
+}
+
+void updateStudent(vector<Student>& students, int roll) {
+    for (auto& s : students) {
+        if (s.getRoll() == roll) {
+            s.update();
+            saveToFile(students);
+            return;
+        }
+    }
+    cout << "Student with roll number " << roll << " not found.\n";
+}
+
+void deleteStudent(vector<Student>& students, int roll) {
+    for (auto it = students.begin(); it != students.end(); ++it) {
+        if (it->getRoll() == roll) {
+            students.erase(it);
+            saveToFile(students);
+            cout << "Student deleted and saved.\n";
+            return;
+        }
+    }
+    cout << "Roll number not found.\n";
+}
+
+// Search
+void searchByRoll(const vector<Student>& students, int roll) {
+    for (const auto& s : students) {
+        if (s.getRoll() == roll) {
+            s.display();
+            return;
+        }
+    }
+    cout << "Roll number not found.\n";
+}
+
+void searchByName(const vector<Student>& students, const string& name) {
+    bool found = false;
+    for (const auto& s : students) {
+        if (s.getName() == name) {
+            s.display();
+            found = true;
+        }
+    }
+    if (!found) cout << "Name not found.\n";
+}
+
+void searchByAge(const vector<Student>& students, int age) {
+    bool found = false;
+    for (const auto& s : students) {
+        if (s.getAge() == age) {
+            s.display();
+            found = true;
+        }
+    }
+    if (!found) cout << "No student with this age found.\n";
+}
+
+void searchByCourse(const vector<Student>& students, const string& course) {
+    bool found = false;
+    for (const auto& s : students) {
+        if (s.getCourse() == course) {
+            s.display();
+            found = true;
+        }
+    }
+    if (!found) cout << "No student in this course found.\n";
+}
+
+// Sorting
+void sortByRoll(vector<Student>& students) {
+    sort(students.begin(), students.end(), [](const Student& a, const Student& b) {
+        return a.getRoll() < b.getRoll();
+    });
+    cout << "Sorted by Roll Number.\n";
+}
+
+void sortByName(vector<Student>& students) {
+    sort(students.begin(), students.end(), [](const Student& a, const Student& b) {
+        return a.getName() < b.getName();
+    });
+    cout << "Sorted by Name.\n";
+}
+
+void sortByAge(vector<Student>& students) {
+    sort(students.begin(), students.end(), [](const Student& a, const Student& b) {
+        return a.getAge() < b.getAge();
+    });
+    cout << "Sorted by Age.\n";
+}
+
+void sortByCourse(vector<Student>& students) {
+    sort(students.begin(), students.end(), [](const Student& a, const Student& b) {
+        return a.getCourse() < b.getCourse();
+    });
+    cout << "Sorted by Course.\n";
+}
+
+// Main Menu
+int main() {
+    vector<Student> students;
+    loadFromFile(students);
+    int choice;
+
+    while (true) {
+        cout << "\n====== Student Management System ======\n";
+        cout << "1. Add Student\n";
+        cout << "2. Display All\n";
+        cout << "3. Search by Roll\n";
+        cout << "4. Search by Name\n";
+        cout << "5. Search by Age\n";
+        cout << "6. Search by Course\n";
+        cout << "7. Update Student\n";
+        cout << "8. Delete Student\n";
+        cout << "9. Sort by Roll\n";
+        cout << "10. Sort by Name\n";
+        cout << "11. Sort by Age\n";
+        cout << "12. Sort by Course\n";
+        cout << "13. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: addStudent(students);
+             break;
+            case 2: displayAll(students); 
+            break;
+            case 3: {
+                int roll;
+                cout << "Enter roll no: ";
+                cin >> roll;
+                searchByRoll(students, roll);
+                break;
+            }
+            case 4: {
+                string name;
+                cout << "Enter name: ";
+                cin.ignore();
+                getline(cin, name);
+                searchByName(students, name);
+                break;
+            }
+            case 5: {
+                int age;
+                cout << "Enter age: ";
+                cin >> age;
+                searchByAge(students, age);
+                break;
+            }
+            case 6: {
+                string course;
+                cout << "Enter course: ";
+                cin.ignore();
+                getline(cin, course);
+                searchByCourse(students, course);
+                break;
+            }
+            case 7: {
+                int roll;
+                cout << "Enter roll no to update: ";
+                cin >> roll;
+                updateStudent(students, roll);
+                break;
+            }
+            case 8: {
+                int roll;
+                cout << "Enter roll no to delete: ";
+                cin >> roll;
+                deleteStudent(students, roll);
+                break;
+            }
+            case 9: sortByRoll(students); 
+            break;
+            case 10: sortByName(students);
+             break;
+            case 11: sortByAge(students);
+             break;
+            case 12: sortByCourse(students);
+             break;
+            case 13: cout << "Exiting...\n"; return 0;
+            default: cout << "Invalid choice.\n";
+        }
+    }
+
+    return 0;
+}
